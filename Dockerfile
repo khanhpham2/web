@@ -38,36 +38,48 @@ RUN apt-get update && apt-get install -y \
     php5-sqlite \
     php5-xmlrpc \
     php5-xcache \
+    php5-intl \
+    php5-gearman \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Nginx & PHP configuration
-COPY conf/vhost.conf /etc/nginx/sites-available/default
+COPY conf/vhosts/* /etc/nginx/sites-available
 COPY conf/nginx.conf /etc/nginx/nginx.conf
 COPY conf/php.ini /etc/php5/fpm/php.ini
 COPY conf/cli.php.ini /etc/php5/cli/php.ini
 COPY conf/php-fpm.conf /etc/php5/fpm/php-fpm.conf
 COPY conf/www.conf /etc/php5/fpm/pool.d/www.conf
 
+# Enable vhosts
+RUN rm -f /etc/nginx/sites-enabled/default
+RUN ln -s /etc/nginx/sites-available/tiki.dev.conf /etc/nginx/sites-enabled/tiki.dev.conf
+
 # Supervisord configuration
 ADD conf/supervisord.conf /etc/supervisord.conf
 
 # Forward request and error logs to docker log collector
-RUN ln -sf /dev/stdout /var/log/nginx/access.log
-RUN ln -sf /dev/stderr /var/log/nginx/error.log
+#RUN ln -sf /dev/stdout /var/log/nginx/access.log
+#RUN ln -sf /dev/stderr /var/log/nginx/error.log
 
 # Composer & support parallel install
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
-RUN composer global require hirak/prestissimo
+#RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
+#RUN composer global require hirak/prestissimo
 
 # Npm
-RUN ln -fs /usr/bin/nodejs /usr/local/bin/node
-RUN npm config set registry http://registry.npmjs.org/
-RUN npm config set strict-ssl false 
-RUN npm install -g bower grunt-cli gulp-cli
+#RUN ln -fs /usr/bin/nodejs /usr/local/bin/node
+#RUN npm config set registry http://registry.npmjs.org/
+#RUN npm config set strict-ssl false 
+#RUN npm install -g bower grunt-cli gulp-cli
 
-# Add php test file
-ADD ./info.php /src/public/index.php
+# Install Phalcon
+RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git
+RUN sudo apt-get update && apt-get install php5-dev -y
+RUN cd cphalcon/build && ./install 
+RUN echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini
+RUN php5enmod phalcon && \
+    service php5-fpm restart 
+ 
 
 # Start Supervisord
 ADD ./start.sh /start.sh
