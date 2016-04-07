@@ -63,14 +63,14 @@ ADD conf/supervisord.conf /etc/supervisord.conf
 #RUN ln -sf /dev/stderr /var/log/nginx/error.log
 
 # Composer & support parallel install
-#RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
-#RUN composer global require hirak/prestissimo
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
+RUN composer global require hirak/prestissimo
 
 # Npm
-#RUN ln -fs /usr/bin/nodejs /usr/local/bin/node
-#RUN npm config set registry http://registry.npmjs.org/
-#RUN npm config set strict-ssl false 
-#RUN npm install -g bower grunt-cli gulp-cli
+RUN ln -fs /usr/bin/nodejs /usr/local/bin/node
+RUN npm config set registry http://registry.npmjs.org/
+RUN npm config set strict-ssl false 
+RUN npm install -g bower grunt-cli gulp-cli
 
 # Install Phalcon
 RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git
@@ -79,7 +79,8 @@ RUN cd cphalcon/build && ./install
 RUN echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini
 RUN php5enmod phalcon && \
     service php5-fpm restart 
- 
+# Change mod for log files
+RUN touch /src/var/log/frontend/checkout/session.log
 
 # Start Supervisord
 ADD ./start.sh /start.sh
@@ -88,3 +89,5 @@ RUN chmod 755 /start.sh
 EXPOSE 80 443
 
 CMD ["/bin/bash", "/start.sh"]
+
+#RUN chmod -R 777 /src/var/log 
