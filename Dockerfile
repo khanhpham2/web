@@ -43,6 +43,13 @@ RUN apt-get update && apt-get install -y \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+# Install Phalcon
+RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git
+RUN sudo apt-get update && apt-get install php5-dev -y
+RUN cd cphalcon/build && ./install 
+RUN echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini
+RUN php5enmod phalcon && service php5-fpm restart 
+
 # Nginx & PHP configuration
 COPY conf/vhosts/* /etc/nginx/sites-available
 COPY conf/nginx.conf /etc/nginx/nginx.conf
@@ -50,10 +57,12 @@ COPY conf/php.ini /etc/php5/fpm/php.ini
 COPY conf/cli.php.ini /etc/php5/cli/php.ini
 COPY conf/php-fpm.conf /etc/php5/fpm/php-fpm.conf
 COPY conf/www.conf /etc/php5/fpm/pool.d/www.conf
+COPY conf/certs/cert.pem /etc/nginx/certs/cert.pem
+COPY conf/certs/key.pem /etc/nginx/certs/key.pem
 
 # Enable vhosts
 RUN rm -f /etc/nginx/sites-enabled/default
-RUN ln -s /etc/nginx/sites-available/tiki.dev.conf /etc/nginx/sites-enabled/tiki.dev.conf
+RUN ln -s /etc/nginx/sites-available/tiki.frontend.conf /etc/nginx/sites-enabled/tiki.frontend.conf
 
 # Supervisord configuration
 ADD conf/supervisord.conf /etc/supervisord.conf
@@ -71,16 +80,6 @@ RUN ln -fs /usr/bin/nodejs /usr/local/bin/node
 RUN npm config set registry http://registry.npmjs.org/
 RUN npm config set strict-ssl false 
 RUN npm install -g bower grunt-cli gulp-cli
-
-# Install Phalcon
-RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git
-RUN sudo apt-get update && apt-get install php5-dev -y
-RUN cd cphalcon/build && ./install 
-RUN echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini
-RUN php5enmod phalcon && \
-    service php5-fpm restart 
-# Change mod for log files
-RUN touch /src/var/log/frontend/checkout/session.log
 
 # Start Supervisord
 ADD ./start.sh /start.sh
