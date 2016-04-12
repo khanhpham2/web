@@ -46,12 +46,22 @@ RUN apt-get update && apt-get install -y \
 # Install Phalcon
 RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git
 RUN sudo apt-get update && apt-get install php5-dev -y
-RUN cd cphalcon/build && ./install 
+RUN cd cphalcon/build && ./install
 RUN echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini
-RUN php5enmod phalcon && service php5-fpm restart 
+RUN php5enmod phalcon && service php5-fpm restart
+
+# Composer & support parallel install
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
+RUN composer global require hirak/prestissimo
+
+# Npm
+RUN ln -fs /usr/bin/nodejs /usr/local/bin/node
+RUN npm config set registry http://registry.npmjs.org/
+RUN npm config set strict-ssl false
+RUN npm install -g bower grunt-cli gulp-cli
 
 # Nginx & PHP configuration
-COPY conf/vhosts/* /etc/nginx/sites-available
+COPY conf/vhosts/* /etc/nginx/sites-available/
 COPY conf/nginx.conf /etc/nginx/nginx.conf
 COPY conf/php.ini /etc/php5/fpm/php.ini
 COPY conf/cli.php.ini /etc/php5/cli/php.ini
@@ -62,24 +72,13 @@ COPY conf/certs/key.pem /etc/nginx/certs/key.pem
 
 # Enable vhosts
 RUN rm -f /etc/nginx/sites-enabled/default
-RUN ln -s /etc/nginx/sites-available/tiki.frontend.conf /etc/nginx/sites-enabled/tiki.frontend.conf
+RUN ln -s /etc/nginx/sites-available/tiki.dev.conf /etc/nginx/sites-enabled/tiki.dev.conf
+RUN ln -s /etc/nginx/sites-available/api.tiki.dev.conf /etc/nginx/sites-enabled/api.tiki.dev.conf
+RUN ln -s /etc/nginx/sites-available/iapi.tiki.dev.conf /etc/nginx/sites-enabled/iapi.tiki.dev.conf
+RUN ln -s /etc/nginx/sites-available/backend.tiki.dev.conf /etc/nginx/sites-enabled/backend.tiki.dev.conf
 
 # Supervisord configuration
 ADD conf/supervisord.conf /etc/supervisord.conf
-
-# Forward request and error logs to docker log collector
-#RUN ln -sf /dev/stdout /var/log/nginx/access.log
-#RUN ln -sf /dev/stderr /var/log/nginx/error.log
-
-# Composer & support parallel install
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
-RUN composer global require hirak/prestissimo
-
-# Npm
-RUN ln -fs /usr/bin/nodejs /usr/local/bin/node
-RUN npm config set registry http://registry.npmjs.org/
-RUN npm config set strict-ssl false 
-RUN npm install -g bower grunt-cli gulp-cli
 
 # Start Supervisord
 ADD ./start.sh /start.sh
@@ -88,5 +87,3 @@ RUN chmod 755 /start.sh
 EXPOSE 80 443
 
 CMD ["/bin/bash", "/start.sh"]
-
-#RUN chmod -R 777 /src/var/log 
