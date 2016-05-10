@@ -5,13 +5,12 @@ RUN locale-gen en_US.UTF-8
 ENV LANG       en_US.UTF-8
 ENV LC_ALL     en_US.UTF-8
 
-# Timezone
-RUN echo "Asia/Bangkok" > /etc/timezone && dpkg-reconfigure -f noninteractive tzdata
-
-# Install Nginx & PHP
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository -y ppa:nginx/stable && add-apt-repository -y ppa:ondrej/php5-5.6
-RUN apt-get update && apt-get install -y \
+# Setup timezone & install libraries
+RUN echo "Asia/Bangkok" > /etc/timezone \
+&& dpkg-reconfigure -f noninteractive tzdata \
+&& apt-get install -y software-properties-common \
+&& add-apt-repository -y ppa:nginx/stable && add-apt-repository -y ppa:ondrej/php5-5.6 \
+&& apt-get update && apt-get install -y \
     vim \
     curl \
     wget \
@@ -21,6 +20,7 @@ RUN apt-get update && apt-get install -y \
     npm \
     supervisor \
     nginx \
+    php5-dev \
     php5-fpm \
     php5-curl \
     php5-gd \
@@ -38,29 +38,27 @@ RUN apt-get update && apt-get install -y \
     php5-sqlite \
     php5-xmlrpc \
     php5-xcache \
+    php5-xdebug \
     php5-intl \
     php5-gearman \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Install Phalcon
-RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git
-RUN sudo apt-get update && apt-get install php5-dev -y
-RUN cd cphalcon/build && ./install
-RUN echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini
-RUN php5enmod phalcon && service php5-fpm restart
-
-# Composer & support parallel install
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
-RUN composer global require hirak/prestissimo
-
-# Npm
-RUN ln -fs /usr/bin/nodejs /usr/local/bin/node
-RUN npm config set registry http://registry.npmjs.org/
-RUN npm config set strict-ssl false
-RUN npm install -g bower grunt-cli gulp-cli
+# Install phalcon & composer & npm
+RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
+&& cd cphalcon/build && ./install \
+&& echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini \
+&& php5enmod phalcon \
+&& curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
+&& composer global require hirak/prestissimo \
+&& ln -fs /usr/bin/nodejs /usr/local/bin/node \
+&& npm config set registry http://registry.npmjs.org \
+&& npm config set strict-ssl false \
+&& npm install -g bower grunt-cli gulp-cli
 
 # Nginx & PHP configuration
+COPY start.sh /start.sh
+COPY conf/supervisord.conf /etc/supervisord.conf
 COPY conf/vhosts/* /etc/nginx/sites-available/
 COPY conf/nginx.conf /etc/nginx/nginx.conf
 COPY conf/php.ini /etc/php5/fpm/php.ini
@@ -70,19 +68,13 @@ COPY conf/www.conf /etc/php5/fpm/pool.d/www.conf
 COPY conf/certs/cert.pem /etc/nginx/certs/cert.pem
 COPY conf/certs/key.pem /etc/nginx/certs/key.pem
 
-# Enable vhosts
-RUN rm -f /etc/nginx/sites-enabled/default
-RUN ln -s /etc/nginx/sites-available/tiki.dev.conf /etc/nginx/sites-enabled/tiki.dev.conf
-RUN ln -s /etc/nginx/sites-available/api.tiki.dev.conf /etc/nginx/sites-enabled/api.tiki.dev.conf
-RUN ln -s /etc/nginx/sites-available/iapi.tiki.dev.conf /etc/nginx/sites-enabled/iapi.tiki.dev.conf
-RUN ln -s /etc/nginx/sites-available/backend.tiki.dev.conf /etc/nginx/sites-enabled/backend.tiki.dev.conf
-
-# Supervisord configuration
-ADD conf/supervisord.conf /etc/supervisord.conf
-
-# Start Supervisord
-ADD ./start.sh /start.sh
-RUN chmod 755 /start.sh
+# Configure vhosts & bootstrap script
+RUN rm -f /etc/nginx/sites-enabled/default \
+&& ln -s /etc/nginx/sites-available/tiki.dev.conf /etc/nginx/sites-enabled/tiki.dev.conf \
+&& ln -s /etc/nginx/sites-available/api.tiki.dev.conf /etc/nginx/sites-enabled/api.tiki.dev.conf \
+&& ln -s /etc/nginx/sites-available/iapi.tiki.dev.conf /etc/nginx/sites-enabled/iapi.tiki.dev.conf \
+&& ln -s /etc/nginx/sites-available/backend.tiki.dev.conf /etc/nginx/sites-enabled/backend.tiki.dev.conf \
+&& chmod 755 /start.sh
 
 EXPOSE 80 443
 
