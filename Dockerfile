@@ -72,6 +72,7 @@ COPY conf/certs/key.pem /etc/nginx/certs/key.pem
 RUN rm -f /etc/nginx/sites-enabled/default \
 && ln -s /etc/nginx/sites-available/tiki.dev.conf /etc/nginx/sites-enabled/tiki.dev.conf \
 && ln -s /etc/nginx/sites-available/api.tiki.dev.conf /etc/nginx/sites-enabled/api.tiki.dev.conf \
+&& ln -s /etc/nginx/sites-available/apiv2.tiki.dev.conf /etc/nginx/sites-enabled/apiv2.tiki.dev.conf \
 && ln -s /etc/nginx/sites-available/iapi.tiki.dev.conf /etc/nginx/sites-enabled/iapi.tiki.dev.conf \
 && ln -s /etc/nginx/sites-available/backend.tiki.dev.conf /etc/nginx/sites-enabled/backend.tiki.dev.conf \
 && chmod 755 /start.sh
