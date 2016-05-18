@@ -42,7 +42,8 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     php5-intl \
     php5-gearman \
 && apt-get clean \
-&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /etc/php5/cli/conf.d/20-xdebug.ini /etc/php5/fpm/conf.d/20-xdebug.ini
+# Disable xdebug by default
 
 # Install phalcon & composer & npm
 RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
@@ -58,23 +59,25 @@ RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
 
 # Nginx & PHP configuration
 COPY start.sh /start.sh
-COPY conf/supervisord.conf /etc/supervisord.conf
-COPY conf/vhosts/* /etc/nginx/sites-available/
-COPY conf/nginx.conf /etc/nginx/nginx.conf
-COPY conf/php.ini /etc/php5/fpm/php.ini
-COPY conf/cli.php.ini /etc/php5/cli/php.ini
-COPY conf/php-fpm.conf /etc/php5/fpm/php-fpm.conf
-COPY conf/www.conf /etc/php5/fpm/pool.d/www.conf
-COPY conf/certs/cert.pem /etc/nginx/certs/cert.pem
-COPY conf/certs/key.pem /etc/nginx/certs/key.pem
+COPY conf/supervisor/supervisord.conf /etc/supervisord.conf
+COPY conf/nginx/certs /etc/nginx/certs
+COPY conf/nginx/vhosts/* /etc/nginx/sites-available/
+COPY conf/nginx/nginx.conf /etc/nginx/nginx.conf
+COPY conf/php/php.ini /etc/php5/fpm/php.ini
+COPY conf/php/cli.php.ini /etc/php5/cli/php.ini
+COPY conf/php/php-fpm.conf /etc/php5/fpm/php-fpm.conf
+COPY conf/php/www.conf /etc/php5/fpm/pool.d/www.conf
+COPY conf/php/xdebug.ini /etc/php5/mods-available/xdebug.ini
 
-# Configure vhosts & bootstrap script
+# Configure vhosts & bootstrap script && forward request and error logs to docker log collector
 RUN rm -f /etc/nginx/sites-enabled/default \
-&& ln -s /etc/nginx/sites-available/tiki.dev.conf /etc/nginx/sites-enabled/tiki.dev.conf \
-&& ln -s /etc/nginx/sites-available/api.tiki.dev.conf /etc/nginx/sites-enabled/api.tiki.dev.conf \
-&& ln -s /etc/nginx/sites-available/apiv2.tiki.dev.conf /etc/nginx/sites-enabled/apiv2.tiki.dev.conf \
-&& ln -s /etc/nginx/sites-available/iapi.tiki.dev.conf /etc/nginx/sites-enabled/iapi.tiki.dev.conf \
-&& ln -s /etc/nginx/sites-available/backend.tiki.dev.conf /etc/nginx/sites-enabled/backend.tiki.dev.conf \
+&& ln -sf /etc/nginx/sites-available/tiki.dev.conf /etc/nginx/sites-enabled/tiki.dev.conf \
+&& ln -sf /etc/nginx/sites-available/api.tiki.dev.conf /etc/nginx/sites-enabled/api.tiki.dev.conf \
+&& ln -sf /etc/nginx/sites-available/apiv2.tiki.dev.conf /etc/nginx/sites-enabled/apiv2.tiki.dev.conf \
+&& ln -sf /etc/nginx/sites-available/iapi.tiki.dev.conf /etc/nginx/sites-enabled/iapi.tiki.dev.conf \
+&& ln -sf /etc/nginx/sites-available/backend.tiki.dev.conf /etc/nginx/sites-enabled/backend.tiki.dev.conf \
+&& ln -sf /dev/stdout /var/log/nginx/access.log \
+&& ln -sf /dev/stderr /var/log/nginx/error.log \
 && chmod 755 /start.sh
 
 EXPOSE 80 443
