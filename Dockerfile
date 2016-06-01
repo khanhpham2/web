@@ -1,4 +1,4 @@
-FROM ubuntu:14.04.3
+FROM ubuntu:latest
 
 # Ensure UTF-8
 RUN locale-gen en_US.UTF-8
@@ -8,47 +8,74 @@ ENV LC_ALL     en_US.UTF-8
 # Timezone
 RUN echo "Asia/Bangkok" > /etc/timezone && dpkg-reconfigure -f noninteractive tzdata
 
+RUN apt-get update && apt-get install -y software-properties-common
+RUN add-apt-repository -y ppa:ondrej/php && add-apt-repository -y ppa:nginx/stable
+
 # Install Nginx & PHP
-RUN apt-get install -y software-properties-common
-RUN add-apt-repository -y ppa:nginx/stable && add-apt-repository -y ppa:ondrej/php5-5.6
 RUN apt-get update && apt-get install -y \
+    sudo \
+    git \
+    cron \
+    re2c \
+    composer \
+    php7.0-curl \
+    php7.0-dev \
+    php7.0-fpm \
+    php7.0-gd \
+    php7.0-gearman \
+    php7.0-geoip \
+    php7.0-imagick \
+    php7.0-intl \
+    php7.0-json \
+    php7.0-ldap \
+    php7.0-mbstring \
+    php7.0-mcrypt \
+    php7.0-memcache \
+    php7.0-memcached \
+    php7.0-mongodb \
+    php7.0-mysql \
+    php7.0-pgsql \
+    php7.0-redis \
+    php7.0-sqlite3 \
+    php7.0-xmlrpc \    
+    php-xdebug \
+    nginx \
+    supervisor \
+    libyaml-dev \
     vim \
     curl \
     wget \
     dialog \
     net-tools \
-    git \
-    npm \
-    supervisor \
-    nginx \
-    php5-fpm \
-    php5-curl \
-    php5-gd \
-    php5-geoip \
-    php5-imagick \
-    php5-json \
-    php5-ldap \
-    php5-mcrypt \
-    php5-memcache \
-    php5-memcached \
-    php5-mongo \
-    php5-mysqlnd \
-    php5-pgsql \
-    php5-redis \
-    php5-sqlite \
-    php5-xmlrpc \
-    php5-xcache \
-    php5-intl \
-    php5-gearman \
-&& apt-get clean \
-&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    npm
 
-# Install Phalcon
-RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git
-RUN sudo apt-get update && apt-get install php5-dev -y
-RUN cd cphalcon/build && ./install
-RUN echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini
-RUN php5enmod phalcon && service php5-fpm restart
+#    php7.0-xcache \
+
+RUN pecl install yaml-beta && \
+    echo 'extension=yaml.so' > /etc/php/7.0/mods-available/yaml.ini && \
+    ln -s /etc/php/7.0/mods-available/yaml.ini /etc/php/7.0/cli/conf.d/50-yaml.ini && \
+    ln -s /etc/php/7.0/mods-available/yaml.ini /etc/php/7.0/fpm/conf.d/50-yaml.ini
+
+RUN git clone https://github.com/phalcon/zephir.git && \
+    cd zephir && \
+    ./install -c && \
+    cd ..
+
+RUN git clone https://github.com/phalcon/cphalcon.git && \
+    cd cphalcon && \
+    git checkout 2.1.x && \
+    zephir build --backend=ZendEngine3 && \
+    cd .. && \
+    echo 'extension=phalcon.so' > /etc/php/7.0/mods-available/phalcon.ini && \
+    ln -s /etc/php/7.0/mods-available/phalcon.ini /etc/php/7.0/cli/conf.d/50-phalcon.ini && \
+    ln -s /etc/php/7.0/mods-available/phalcon.ini /etc/php/7.0/fpm/conf.d/50-phalcon.ini
+
+RUN rm -rf cphalcon && rm -rf zephir
+
+RUN apt-get autoremove -y && \
+    apt-get clean && \
+    apt-get autoclean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Composer & support parallel install
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer
@@ -63,10 +90,10 @@ RUN npm install -g bower grunt-cli gulp-cli
 # Nginx & PHP configuration
 COPY conf/vhosts/* /etc/nginx/sites-available/
 COPY conf/nginx.conf /etc/nginx/nginx.conf
-COPY conf/php.ini /etc/php5/fpm/php.ini
-COPY conf/cli.php.ini /etc/php5/cli/php.ini
-COPY conf/php-fpm.conf /etc/php5/fpm/php-fpm.conf
-COPY conf/www.conf /etc/php5/fpm/pool.d/www.conf
+COPY conf/php.ini /etc/php/7.0/fpm/php.ini
+COPY conf/cli.php.ini /etc/php/7.0/cli/php.ini
+COPY conf/php-fpm.conf /etc/php/7.0/fpm/php-fpm.conf
+COPY conf/www.conf /etc/php/7.0/fpm/pool.d/www.conf
 COPY conf/certs/cert.pem /etc/nginx/certs/cert.pem
 COPY conf/certs/key.pem /etc/nginx/certs/key.pem
 
