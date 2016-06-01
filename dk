@@ -1,0 +1,196 @@
+#!/bin/bash
+
+DOCKER_IMAGES="tala-web-p7p2"
+DOCKER_CONTAINER="tala-web-p7p2"
+HOST_HTTP_PORT=9000
+HOST_HTTPS_PORT=9443
+
+function docker_run {
+    docker run -id --name $DOCKER_CONTAINER -p $HOST_HTTP_PORT:80 -p $HOST_HTTPS_PORT:443 -v /Volumes/data/dev/www/tala:/src $DOCKER_IMAGES;
+}
+
+if [ $# -eq 0 ]
+    then
+        echo -e "No arguments supplied! Supported arguments:
+        * init
+        * cli
+        * start
+        * stop
+        * reload
+        * ssh
+        * update
+        * grunt
+        * grunt css
+        * grunt js
+        * composer install
+        * composer update
+        * nginx restart
+        * env [production|test|development]
+        * ngrok [domain]
+        * deploy [box]
+        * release [box]
+        "
+else
+    if [ "$1" == "init" ]; then
+        # Prerequisites
+        which docker > /dev/null 2>&1 || { echo "Docker is required. Aborting." >&2; exit 1; }
+
+        echo "Creating container '$DOCKER_CONTAINER'...";
+        if docker ps -a | grep -q '$DOCKER_CONTAINER'; then
+            echo "Container already exists, removing...";
+            docker rm -f $DOCKER_CONTAINER;
+        fi
+        
+        docker_run
+
+        # Post-checking
+        if [ "Found" != "$(docker exec -it $DOCKER_CONTAINER [ -f /src/dk ] && echo "Found")" ]; then
+            echo "Source code is not found. Aborting..."
+            exit
+        fi
+
+        echo "DONE";
+
+        echo 'Please enter your username (only characters, numbers, underscore and dot are allowed): ';
+        read id;
+
+        echo
+        echo "Changing mode of log directories...";
+        chmod -R 777 var/log/*;
+        echo "DONE";
+
+        echo
+        echo "Generating local configuration..."
+        sed -e "s/%client_id%/$id/g" config/local.php_dev > config/local.php;
+        sed -e "s/%client_id%/$id/g" applications/frontend/config/local.php_dev > applications/frontend/config/local.php;
+        sed -e "s/%client_id%/$id/g" applications/backend/config/local.php_dev > applications/backend/config/local.php;
+        sed -e "s/%client_id%/$id/g" applications/api/config/local.php_dev > applications/api/local.php;
+        echo "DONE";
+
+        echo
+        echo "Installing composer libraries..."
+        docker exec -it $DOCKER_CONTAINER /src/scripts/docker/commands/composer.sh install;
+        echo "DONE";
+
+        echo
+        echo "Installing npm libraries..."
+        docker exec -it $DOCKER_CONTAINER /src/scripts/docker/commands/npm.sh;
+        echo "DONE";
+
+        echo
+        echo "Open a browser and access 'http://tiki.dev' and you are able to see the magic!";
+
+    elif [ "$1" == "start" -o "$1" == "reload" -o "$1" == "restart" ]; then
+        echo "Creating container '$DOCKER_CONTAINER'...";
+        if docker ps -a | grep -q '$DOCKER_CONTAINER'; then
+            echo "Container already exists, removing...";
+            docker rm -f $DOCKER_CONTAINER;
+        fi
+        docker_run
+        echo "DONE";
+
+    elif [ "$1" == "stop" ]; then
+        echo "Stopping container '$DOCKER_CONTAINER'...";
+        if docker ps -a | grep -q '$DOCKER_CONTAINER'; then
+            docker rm -f $DOCKER_CONTAINER;
+        fi
+        echo "DONE";
+
+    elif [ "$1" == "ssh" ]; then
+        docker exec -it $DOCKER_CONTAINER bash;
+
+    elif [ "$1" == "cli" ]; then
+        docker exec -it $DOCKER_CONTAINER /src/scripts/docker/commands/cli.sh $2 $3 $4 $5;
+
+    elif [ "$1" == "grunt" -a "$2" == "js" ]; then
+        docker exec -it $DOCKER_CONTAINER /src/scripts/docker/commands/grunt.sh requirejs;
+
+    elif [ "$1" == "grunt" -a "$2" == "css" ]; then
+        docker exec -it $DOCKER_CONTAINER /src/scripts/docker/commands/grunt.sh sass;
+
+    elif [ "$1" == "grunt" ]; then
+        docker exec -it $DOCKER_CONTAINER /src/scripts/docker/commands/grunt.sh deploy;
+
+    elif [ "$1" == "composer" -a "$2" == "install" ]; then
+        docker exec -it $DOCKER_CONTAINER /src/scripts/docker/commands/composer.sh install;
+
+    elif [ "$1" == "composer" -a "$2" == "update" ]; then
+        docker exec -it $DOCKER_CONTAINER /src/scripts/docker/commands/composer.sh update;
+
+    elif [ "$1" == "update" ]; then
+        echo "Updating docker image..."
+        docker pull tala/web:dev;
+
+    elif [ "$1" == "nginx" -a "$2" == "restart" ]; then
+        docker exec -it $DOCKER_CONTAINER /src/scripts/docker/commands/supervisor.sh;
+
+    elif [ "$1" == "env" ]; then
+        if [ "$2" == "production" -o "$2" == "development" -o "$2" == "test" ]; then
+            echo "Updating virtual hosts..."
+            docker exec -it $DOCKER_CONTAINER /src/scripts/docker/commands/env.sh $2;
+        else
+            echo "Environment is not supported. Acceptable options: production | development | test"
+        fi
+
+    elif [ "$1" == "ngrok" ]; then
+        cd scripts/docker/ngrok/
+        if [ "$( uname -s )" == "Linux" ]; then
+            ./ngrok-linux http $2:80 --host-header $2
+        elif [ "$( uname -s )" == "Darwin" ]; then
+            ./ngrok-mac http $2:80 --host-header $2
+        else
+            echo "Argument is not supported"
+        fi
+
+    elif [ "$1" == "deploy" ]; then
+        if [ -z "$3" ]; then
+            branch=$(git rev-parse --abbrev-ref HEAD)
+        else
+            branch=$3
+        fi
+        
+        username=$(whoami)
+        version="nvms_$(date +%Y%m%d%H%M%S)"
+
+        ssh tala@10.20.30.48 -i scripts/deployment/staging/tala.pem "
+            echo "Enter directory /data/www/tala/$2"
+            cd /data/www/tala/$2
+
+            echo "Checkout branch $branch..."
+            git fetch origin
+            git reset --hard origin/$branch
+            git checkout -f $branch
+            git pull
+
+            echo "Composer installing..."
+            composer install
+
+            echo "Compressing js + css..."
+            cd webroot/frontend/assets/tools
+            grunt sass
+            grunt requirejs
+
+            echo "Updating assets version..."
+            sed -i 's/nvms_.*/$version'\''/g' /data/www/tala/$2/config/local.php
+
+            echo "Done, $2 is deployed successfully"
+            echo "Branch: $branch"
+
+            cd /data/www/tala/$2
+            rm -f release.txt
+            echo "$2" >> release.txt
+            echo "$branch" >> release.txt
+            echo "$username" >> release.txt
+        "
+
+    elif [ "$1" == "release" ]; then
+            ssh tala@10.20.30.48 -i scripts/deployment/staging/tala.pem "
+            cd /data/www/tala/$2
+            rm -f release.txt
+            echo "Release $2 successfully"
+        "
+
+    else
+        echo "Argument is not supported"
+    fi
+fi
