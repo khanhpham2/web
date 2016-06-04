@@ -11,13 +11,13 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
 && apt-get install -y software-properties-common \
 && add-apt-repository -y ppa:nginx/stable && add-apt-repository -y ppa:ondrej/php5-5.6 \
 && apt-get update && apt-get install -y \
+    build-essential \
     vim \
     curl \
     wget \
     dialog \
     net-tools \
     git \
-    npm \
     supervisor \
     nginx \
     php5-dev \
@@ -40,13 +40,14 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     php5-xcache \
     php5-xdebug \
     php5-intl \
-    php5-gearman \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /etc/php5/cli/conf.d/20-xdebug.ini /etc/php5/fpm/conf.d/20-xdebug.ini
 # Disable xdebug by default
 
-# Install phalcon & composer & npm
-RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
+# Install nodejs, npm, phalcon & composer
+RUN curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash - \
+&& apt-get install -y nodejs \
+&& git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
 && cd cphalcon/build && ./install \
 && echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini \
 && php5enmod phalcon \
@@ -55,7 +56,7 @@ RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
 && ln -fs /usr/bin/nodejs /usr/local/bin/node \
 && npm config set registry http://registry.npmjs.org \
 && npm config set strict-ssl false \
-&& npm install -g bower grunt-cli gulp-cli
+&& npm install -g npm bower grunt-cli gulp-cli
 
 # Nginx & PHP configuration
 COPY start.sh /start.sh
