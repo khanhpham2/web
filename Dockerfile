@@ -45,7 +45,7 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
 # Disable xdebug by default
 
 # Install nodejs, npm, phalcon & composer
-RUN curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash - \
+RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash - \
 && apt-get install -y nodejs \
 && git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
 && cd cphalcon/build && ./install \
