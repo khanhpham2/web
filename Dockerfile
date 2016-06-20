@@ -1,4 +1,5 @@
 FROM ubuntu:14.04.3
+MAINTAINER Hoa Nguyen <hoa.nguyenmanh@tiki.vn>
 
 # Ensure UTF-8
 RUN locale-gen en_US.UTF-8
@@ -45,18 +46,18 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
 # Disable xdebug by default
 
 # Install nodejs, npm, phalcon & composer
-RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash - \
+RUN curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash - \
 && apt-get install -y nodejs \
 && git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
 && cd cphalcon/build && ./install \
 && echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini \
 && php5enmod phalcon \
 && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
-&& composer global require hirak/prestissimo \
 && ln -fs /usr/bin/nodejs /usr/local/bin/node \
 && npm config set registry http://registry.npmjs.org \
 && npm config set strict-ssl false \
-&& npm install -g npm bower grunt-cli gulp-cli
+&& npm cache clean \ 
+&& npm install -g bower grunt-cli gulp-cli
 
 # Nginx & PHP configuration
 COPY start.sh /start.sh
