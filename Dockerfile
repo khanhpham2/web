@@ -77,6 +77,7 @@ RUN rm -f /etc/nginx/sites-enabled/default \
 && ln -sf /etc/nginx/sites-available/api.tiki.dev.conf /etc/nginx/sites-enabled/api.tiki.dev.conf \
 && ln -sf /etc/nginx/sites-available/apiv2.tiki.dev.conf /etc/nginx/sites-enabled/apiv2.tiki.dev.conf \
 && ln -sf /etc/nginx/sites-available/iapi.tiki.dev.conf /etc/nginx/sites-enabled/iapi.tiki.dev.conf \
+&& ln -sf /etc/nginx/sites-available/aapi.tiki.dev.conf /etc/nginx/sites-enabled/aapi.tiki.dev.conf \
 && ln -sf /etc/nginx/sites-available/backend.tiki.dev.conf /etc/nginx/sites-enabled/backend.tiki.dev.conf \
 && ln -sf /dev/stdout /var/log/nginx/access.log \
 && ln -sf /dev/stderr /var/log/nginx/error.log \
