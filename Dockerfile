@@ -1,86 +1,89 @@
-FROM ubuntu:14.04.3
+FROM centos
 
-# Ensure UTF-8
-RUN locale-gen en_US.UTF-8
-ENV LANG       en_US.UTF-8
-ENV LC_ALL     en_US.UTF-8
+### Install Repo
 
-# Setup timezone & install libraries
-RUN echo "Asia/Bangkok" > /etc/timezone \
-&& dpkg-reconfigure -f noninteractive tzdata \
-&& apt-get install -y software-properties-common \
-&& add-apt-repository -y ppa:nginx/stable && add-apt-repository -y ppa:ondrej/php5-5.6 \
-&& apt-get update && apt-get install -y \
-    build-essential \
-    vim \
-    curl \
-    wget \
-    dialog \
-    net-tools \
-    git \
-    supervisor \
-    nginx \
-    php5-dev \
-    php5-fpm \
-    php5-curl \
-    php5-gd \
-    php5-geoip \
-    php5-imagick \
-    php5-json \
-    php5-ldap \
-    php5-mcrypt \
-    php5-memcache \
-    php5-memcached \
-    php5-mongo \
-    php5-mysqlnd \
-    php5-pgsql \
-    php5-redis \
-    php5-sqlite \
-    php5-xmlrpc \
-    php5-xcache \
-    php5-xdebug \
-    php5-intl \
-&& apt-get clean \
-&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /etc/php5/cli/conf.d/20-xdebug.ini /etc/php5/fpm/conf.d/20-xdebug.ini
-# Disable xdebug by default
+RUN yum clean all && rm -f /var/cache/yum/timedhosts.txt && cp -rf /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
 
-# Install nodejs, npm, phalcon & composer
-RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash - \
-&& apt-get install -y nodejs \
-&& git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+RUN yum install -y epel-release 
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+
+RUN curl --silent --location https://rpm.nodesource.com/setup_6.x | bash - 
+
+
+ADD php/remi-release-7.rpm /tmp/remi-release-7.rpm
+RUN yum install /tmp/remi-release-7.rpm -y 
+RUN rpm --import /etc/pki/rpm-gpg/RPM-GPG-KEY-remi
+ADD php/remi.repo /etc/yum.repos.d/remi.repo
+
+ADD nginx/nginx-release-centos-7-0.el7.ngx.noarch.rpm /tmp/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+RUN yum install -y /tmp/nginx-release-centos-7-0.el7.ngx.noarch.rpm && rm -rf /etc/nginx/conf.d/*.conf 
+
+RUN yum install -y git vim wget curl iftop net-tools bind-utils telnet supervisor gcc gcc-devel 
+
+### Install PHP 
+RUN yum install -y \
+    php \php-cli \
+	php-fpm \
+	php-curl \
+	php-devel \
+	php-gd \
+	php-geoip \
+	php-imagick \
+	php-json \
+	php-ldap \
+	php-mcrypt \
+	php-memcache \
+    php-memcached \
+    php-mongo \
+    php-mysqlnd \
+    php-pgsql \
+    php-redis \
+    php-sqlite \
+    php-xmlrpc \
+    php-xcache \
+    php-xdebug \
+    php-intl \
+	nginx \	
+	nodejs \
+    && yum clean all && rm -rf /etc/php.d/15-xdebug.ini
+
+RUN git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
 && cd cphalcon/build && ./install \
-&& echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini \
-&& php5enmod phalcon \
-&& curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
-&& composer global require hirak/prestissimo \
-&& ln -fs /usr/bin/nodejs /usr/local/bin/node \
-&& npm config set registry http://registry.npmjs.org \
-&& npm config set strict-ssl false \
-&& npm install -g npm bower grunt-cli gulp-cli
+&& echo "extension=phalcon.so" >> /etc/php.d/50-phalcon.ini
 
-# Nginx & PHP configuration
-COPY start.sh /start.sh
-COPY conf/supervisor/supervisord.conf /etc/supervisord.conf
-COPY conf/nginx/certs /etc/nginx/certs
-COPY conf/nginx/vhosts/* /etc/nginx/sites-available/
-COPY conf/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY conf/php/php.ini /etc/php5/fpm/php.ini
-COPY conf/php/cli.php.ini /etc/php5/cli/php.ini
-COPY conf/php/php-fpm.conf /etc/php5/fpm/php-fpm.conf
-COPY conf/php/www.conf /etc/php5/fpm/pool.d/www.conf
-COPY conf/php/xdebug.ini /etc/php5/mods-available/xdebug.ini
+RUN curl -sS https://getcomposer.org/installer | php
+RUN mv composer.phar /usr/bin/composer && chmod +x /usr/bin/composer
+RUN composer global require hirak/prestissimo 
+RUN npm install -g npm bower grunt-cli gulp-cli
+	  
+# Create nginx web root folder
+RUN mkdir -p /src/webroot/frontend /src/webroot/api_internal /src/webroot/backend /src/webroot/api /src/webroot/api_v2
 
-# Configure vhosts & bootstrap script && forward request and error logs to docker log collector
-RUN rm -f /etc/nginx/sites-enabled/default \
-&& ln -sf /etc/nginx/sites-available/tiki.dev.conf /etc/nginx/sites-enabled/tiki.dev.conf \
-&& ln -sf /etc/nginx/sites-available/api.tiki.dev.conf /etc/nginx/sites-enabled/api.tiki.dev.conf \
-&& ln -sf /etc/nginx/sites-available/apiv2.tiki.dev.conf /etc/nginx/sites-enabled/apiv2.tiki.dev.conf \
-&& ln -sf /etc/nginx/sites-available/iapi.tiki.dev.conf /etc/nginx/sites-enabled/iapi.tiki.dev.conf \
-&& ln -sf /etc/nginx/sites-available/backend.tiki.dev.conf /etc/nginx/sites-enabled/backend.tiki.dev.conf \
-&& ln -sf /dev/stdout /var/log/nginx/access.log \
-&& ln -sf /dev/stderr /var/log/nginx/error.log \
-&& chmod 755 /start.sh
+# PHP Configuration
+COPY php/php.ini /etc/php.ini
+COPY php/php-fpm.conf /etc/php-fpm.conf
+COPY php/www.conf /etc/php-fpm.d/www.conf
+COPY php/xdebug.ini /etc/php.d/xdebug.ini
 
-EXPOSE 80 443
+### Install Nginx && Module pagespeed 
+COPY nginx/nginx-module-pagespeed-1.11.33.2-1.el7.centos.tiki.x86_64.rpm /tmp/nginx-module-pagespeed-1.11.33.2-1.el7.centos.tiki.x86_64.rpm
+RUN rpm -Uvh /tmp/nginx-module-pagespeed-1.11.33.2-1.el7.centos.tiki.x86_64.rpm
+COPY nginx/certs /etc/nginx/certs
+COPY nginx/vhosts/* /etc/nginx/conf.d/
+COPY nginx/nginx.conf /etc/nginx/nginx.conf
 
-CMD ["/bin/bash", "/start.sh"]
+### Add user www-data 
+RUN groupadd -g 1000 www-data 
+RUN useradd -g 1000 -u 1000 www-data
+
+### Add supervisord cho Worker
+
+### Add Logs folder 
+RUN mkdir -p /var/log/php-fpm /var/log/nginx  /var/log/supervisor && rm -rf /tmp/*
+
+EXPOSE 80 443 9001
+
+### ENTRYPOINT ["/usr/bin/supervisord", "/etc/supervisord.conf"]
+ADD supervisor/supervisord.conf /etc/supervisord.conf
+CMD ["/usr/bin/supervisord", "--configuration=/etc/supervisord.conf"]
