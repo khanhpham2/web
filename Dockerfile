@@ -65,11 +65,11 @@ COPY conf/supervisor/supervisord.conf /etc/supervisord.conf
 COPY conf/nginx/certs /etc/nginx/certs
 COPY conf/nginx/vhosts/* /etc/nginx/sites-available/
 COPY conf/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY conf/php/php.ini /etc/php5/fpm/php.ini
-COPY conf/php/cli.php.ini /etc/php5/cli/php.ini
-COPY conf/php/php-fpm.conf /etc/php5/fpm/php-fpm.conf
-COPY conf/php/www.conf /etc/php5/fpm/pool.d/www.conf
-COPY conf/php/xdebug.ini /etc/php5/mods-available/xdebug.ini
+COPY conf/php56/php.ini /etc/php5/fpm/php.ini
+COPY conf/php56/cli.php.ini /etc/php5/cli/php.ini
+COPY conf/php56/php-fpm.conf /etc/php5/fpm/php-fpm.conf
+COPY conf/php56/www.conf /etc/php5/fpm/pool.d/www.conf
+COPY conf/php56/xdebug.ini /etc/php5/mods-available/xdebug.ini
 
 # Configure vhosts & bootstrap script && forward request and error logs to docker log collector
 RUN rm -f /etc/nginx/sites-enabled/default \
