@@ -51,10 +51,7 @@ RUN apt-get update && apt-get install -y \
 
 #    php7.0-xcache \
 
-RUN pecl install yaml-beta && \
-    echo 'extension=yaml.so' > /etc/php/7.0/mods-available/yaml.ini && \
-    ln -s /etc/php/7.0/mods-available/yaml.ini /etc/php/7.0/cli/conf.d/50-yaml.ini && \
-    ln -s /etc/php/7.0/mods-available/yaml.ini /etc/php/7.0/fpm/conf.d/50-yaml.ini
+RUN apt-get install php-yaml
 
 RUN git clone https://github.com/phalcon/zephir.git && \
     cd zephir && \
@@ -63,7 +60,7 @@ RUN git clone https://github.com/phalcon/zephir.git && \
 
 RUN git clone https://github.com/phalcon/cphalcon.git && \
     cd cphalcon && \
-    git checkout 2.1.x && \
+    git checkout 3.1.x && \
     zephir build --backend=ZendEngine3 && \
     cd .. && \
     echo 'extension=phalcon.so' > /etc/php/7.0/mods-available/phalcon.ini && \
