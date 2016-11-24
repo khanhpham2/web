@@ -21,6 +21,8 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     dialog \
     net-tools \
     git \
+    zip \
+    unzip \
     supervisor \
     nginx \
     php5.6-cli \
