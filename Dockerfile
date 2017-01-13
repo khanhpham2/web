@@ -14,6 +14,7 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
 && add-apt-repository -y ppa:nginx/stable && add-apt-repository -y ppa:ondrej/php \
 && apt-get update && apt-get install -y \
     build-essential \
+    libpcre3-dev \
     vim \
     curl \
     wget \
