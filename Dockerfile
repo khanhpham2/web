@@ -10,7 +10,8 @@ ENV LC_ALL     en_US.UTF-8
 RUN echo "Asia/Bangkok" > /etc/timezone \
 && dpkg-reconfigure -f noninteractive tzdata \
 && apt-get install -y software-properties-common \
-&& add-apt-repository -y ppa:nginx/stable && add-apt-repository -y ppa:ondrej/php5-5.6 \
+&& apt-get install -y language-pack-en-base \
+&& add-apt-repository -y ppa:nginx/stable && add-apt-repository -y ppa:ondrej/php \
 && apt-get update && apt-get install -y \
     build-essential \
     vim \
