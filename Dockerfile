@@ -65,8 +65,8 @@ RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash - \
 && apt-get install -y nodejs \
 && git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
 && cd cphalcon/build && ./install \
-&& echo "extension=phalcon.so" >> /etc/php5/mods-available/phalcon.ini \
-&& php5enmod phalcon \
+&& echo "extension=phalcon.so" > /etc/php/5.6/mods-available/phalcon.ini \
+&& /usr/sbin/phpenmod phalcon \
 && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
 && ln -fs /usr/bin/nodejs /usr/local/bin/node \
 && npm config set registry http://registry.npmjs.org \
