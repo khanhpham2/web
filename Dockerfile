@@ -1,6 +1,8 @@
 FROM ubuntu:14.04.3
 MAINTAINER Hoa Nguyen <hoa.nguyenmanh@tiki.vn>
 
+WORKDIR /src
+
 # Ensure UTF-8
 RUN locale-gen en_US.UTF-8
 ENV LANG       en_US.UTF-8
@@ -61,7 +63,7 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
 # Disable xdebug by default
 
 # Install nodejs, npm, phalcon & composer
-RUN curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash - \
+RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash - \
 && apt-get install -y nodejs \
 && git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
 && cd cphalcon/build && ./install \
