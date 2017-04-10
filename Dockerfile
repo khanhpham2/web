@@ -62,6 +62,19 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /etc/php5/cli/conf.d/20-xdebug.ini /etc/php5/fpm/conf.d/20-xdebug.ini
 # Disable xdebug by default
 
+# Install php-rdkafka
+RUN curl -sSL https://github.com/edenhill/librdkafka/archive/v0.9.3.tar.gz | tar xz \
+    && cd librdkafka-0.9.3 \
+    && ./configure && make && make install \
+    && cd .. && rm -rf librdkafka-0.9.3
+
+RUN curl -sSL https://github.com/arnaud-lb/php-rdkafka/archive/3.0.1.tar.gz | tar xz \
+    && cd php-rdkafka-3.0.1 \
+    && phpize && ./configure && make all && make install \
+    && echo "extension=rdkafka.so" > /etc/php/5.6/mods-available/rdkafka.ini \
+    && phpenmod rdkafka \
+    && cd .. && rm -rf php-rdkafka-3.0.1
+
 # Install nodejs, npm, phalcon & composer
 RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash - \
 && apt-get install -y nodejs \
