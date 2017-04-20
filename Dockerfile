@@ -44,6 +44,7 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     php5.6-memcache \
     php5.6-memcached \
     php5.6-mongo \
+    php5.6-mongodb \
     php5.6-mysqlnd \
     php5.6-pgsql \
     php5.6-redis \
