@@ -15,8 +15,8 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
 && apt-get install -y language-pack-en-base \
 && add-apt-repository -y ppa:nginx/stable \
 && add-apt-repository -y ppa:ondrej/php \
-&& apt-get update \
-&& DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+&& apt-get update && DEBIAN_FRONTEND=noninteractive \
+&& apt-get install -y --no-install-recommends \
     build-essential \
     libpcre3-dev \
     vim \
@@ -29,35 +29,34 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     unzip \
     supervisor \
     nginx \
-    php5.6-cli \
-    php5.6-dev \
-    php5.6-fpm \
-    php5.6-bcmath \
-    php5.6-bz2 \
-    php5.6-zip \
-    php5.6-dba \
-    php5.6-dom \
-    php5.6-curl \
-    php5.6-gd \
-    php5.6-geoip \
-    php5.6-imagick \
-    php5.6-json \
-    php5.6-ldap \
-    php5.6-mbstring \
-    php5.6-mcrypt \
-    php5.6-memcache \
-    php5.6-memcached \
-    php5.6-mongo \
-    php5.6-mysqlnd \
-    php5.6-pgsql \
-    php5.6-redis \
-    php5.6-soap \
-    php5.6-sqlite \
-    php5.6-xml \
-    php5.6-xmlrpc \
-    php5.6-xcache \
-    php5.6-xdebug \
-    php5.6-intl \
+    php7.0-cli \
+    php7.0-dev \
+    php7.0-fpm \
+    php7.0-bcmath \
+    php7.0-bz2 \
+    php7.0-zip \
+    php7.0-dba \
+    php7.0-dom \
+    php7.0-curl \
+    php7.0-gd \
+    php7.0-geoip \
+    php7.0-imagick \
+    php7.0-json \
+    php7.0-ldap \
+    php7.0-mbstring \
+    php7.0-mcrypt \
+    php7.0-memcache \
+    php7.0-memcached \
+    php7.0-mongo \
+    php7.0-mysqlnd \
+    php7.0-pgsql \
+    php7.0-redis \
+    php7.0-soap \
+    php7.0-sqlite \
+    php7.0-xml \
+    php7.0-xmlrpc \
+    php7.0-xdebug \
+    php7.0-intl \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /etc/php5/cli/conf.d/20-xdebug.ini /etc/php5/fpm/conf.d/20-xdebug.ini
 # Disable xdebug by default
@@ -71,18 +70,16 @@ RUN curl -sSL https://github.com/edenhill/librdkafka/archive/v0.9.3.tar.gz | tar
 RUN curl -sSL https://github.com/arnaud-lb/php-rdkafka/archive/3.0.1.tar.gz | tar xz \
     && cd php-rdkafka-3.0.1 \
     && phpize && ./configure && make all && make install \
-    && echo "extension=rdkafka.so" > /etc/php/5.6/mods-available/rdkafka.ini \
+    && echo "extension=rdkafka.so" > /etc/php/7.0/mods-available/rdkafka.ini \
     && phpenmod rdkafka \
     && cd .. && rm -rf php-rdkafka-3.0.1
 
 # Install nodejs, npm, phalcon & composer
-RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash - \
-&& apt-get install -y nodejs \
-&& git clone -b 1.3.6 https://github.com/phalcon/cphalcon.git \
-&& cd cphalcon/build && ./install \
-&& echo "extension=phalcon.so" > /etc/php/5.6/mods-available/phalcon.ini \
-&& /usr/sbin/phpenmod phalcon \
+RUN  curl -s "https://packagecloud.io/install/repositories/phalcon/stable/script.deb.sh" | sudo bash \
+&& apt-get install php7.0-phalcon \
 && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
+&& curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash - \
+&& apt-get install -y nodejs \
 && ln -fs /usr/bin/nodejs /usr/local/bin/node \
 && npm config set registry http://registry.npmjs.org \
 && npm config set strict-ssl false \
@@ -95,14 +92,16 @@ COPY conf/supervisor/supervisord.conf /etc/supervisord.conf
 COPY conf/nginx/certs /etc/nginx/certs
 COPY conf/nginx/vhosts/* /etc/nginx/sites-available/
 COPY conf/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY conf/php56/php.ini /etc/php/5.6/fpm/php.ini
-COPY conf/php56/cli.php.ini /etc/php/5.6/cli/php.ini
-COPY conf/php56/php-fpm.conf /etc/php/5.6/fpm/php-fpm.conf
-COPY conf/php56/www.conf /etc/php/5.6/fpm/pool.d/www.conf
-COPY conf/php56/xdebug.ini /etc/php/5.6/mods-available/xdebug.ini
+COPY conf/php70/php.ini /etc/php/7.0/fpm/php.ini
+COPY conf/php70/cli.php.ini /etc/php/7.0/cli/php.ini
+COPY conf/php70/php-fpm.conf /etc/php/7.0/fpm/php-fpm.conf
+COPY conf/php70/www.conf /etc/php/7.0/fpm/pool.d/www.conf
+COPY conf/php70/xdebug.ini /etc/php/7.0/fpm/pool.d/xdebug.ini
 
-# Configure vhosts & bootstrap script && forward request and error logs to docker log collector
+# Configure php & vhosts & bootstrap scripts && forward request and error logs to docker log collector
 RUN rm -f /etc/nginx/sites-enabled/default \
+&& mkdir /run/php \
+&& chown www-data:www-data /run/php \
 && ln -sf /etc/nginx/sites-available/tiki.dev.conf /etc/nginx/sites-enabled/tiki.dev.conf \
 && ln -sf /etc/nginx/sites-available/api.tiki.dev.conf /etc/nginx/sites-enabled/api.tiki.dev.conf \
 && ln -sf /etc/nginx/sites-available/apiv2.tiki.dev.conf /etc/nginx/sites-enabled/apiv2.tiki.dev.conf \
