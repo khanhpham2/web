@@ -76,6 +76,15 @@ RUN curl -sSL https://github.com/arnaud-lb/php-rdkafka/archive/3.0.1.tar.gz | ta
     && phpenmod rdkafka \
     && cd .. && rm -rf php-rdkafka-3.0.1
 
+# Install php-runkit
+# redefine constant for unittest
+RUN curl -sSL https://github.com/zenovich/runkit/releases/download/1.0.4/runkit-1.0.4.tgz | tar xz \
+    && cd runkit-1.0.4 \
+    && phpize && ./configure && make && make test && make install \
+    && echo "extension=runkit.so" > /etc/php/5.6/mods-available/runkit.ini \
+    && phpenmod runkit \
+    && cd .. && rm -rf runkit-1.0.4
+
 # Install nodejs, npm, phalcon & composer
 RUN curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash - \
 && apt-get install -y nodejs \
