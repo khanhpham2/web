@@ -15,8 +15,8 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
 && apt-get install -y language-pack-en-base \
 && add-apt-repository -y ppa:nginx/stable \
 && add-apt-repository -y ppa:ondrej/php \
-&& apt-get update && DEBIAN_FRONTEND=noninteractive \
-&& apt-get install -y --no-install-recommends \
+&& apt-get update \
+&& DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends \
     build-essential \
     libpcre3-dev \
     vim \
@@ -48,6 +48,7 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     php7.0-memcache \
     php7.0-memcached \
     php7.0-mongo \
+    php7.0-mongodb \
     php7.0-mysqlnd \
     php7.0-pgsql \
     php7.0-redis \
@@ -57,8 +58,9 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     php7.0-xmlrpc \
     php7.0-xdebug \
     php7.0-intl \
+&& phpdismod xdebug \
 && apt-get clean \
-&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /etc/php5/cli/conf.d/20-xdebug.ini /etc/php5/fpm/conf.d/20-xdebug.ini
+&& rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 # Disable xdebug by default
 
 # Install php-rdkafka
