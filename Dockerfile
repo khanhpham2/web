@@ -76,6 +76,14 @@ RUN curl -sSL https://github.com/arnaud-lb/php-rdkafka/archive/3.0.1.tar.gz | ta
     && phpenmod rdkafka \
     && cd .. && rm -rf php-rdkafka-3.0.1
 
+# Runkit7 https://github.com/runkit7/runkit7
+RUN curl -sSL https://github.com/runkit7/runkit7/releases/download/1.0.5a4/runkit-1.0.5a4.tgz | tar xz \
+    && cd runkit-1.0.5a4 \
+    && phpize && ./configure && make all && make install \
+    && echo "extension=runkit.so" > /etc/php/7.0/mods-available/runkit.ini \
+    && phpenmod runkit \
+    && cd .. && rm -rf runkit-1.0.5a4
+
 # Install nodejs, npm, phalcon & composer
 RUN  curl -s "https://packagecloud.io/install/repositories/phalcon/stable/script.deb.sh" | sudo bash \
 && apt-get install php7.0-phalcon \
