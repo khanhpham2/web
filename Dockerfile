@@ -58,6 +58,8 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     php7.0-xmlrpc \
     php7.0-xdebug \
     php7.0-intl \
+    php7.0-apcu \
+    php7.0-apcu-bc \
 && phpdismod xdebug \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
