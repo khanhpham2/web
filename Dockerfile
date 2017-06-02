@@ -29,35 +29,35 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     unzip \
     supervisor \
     nginx \
-    php7.0-cli \
-    php7.0-dev \
-    php7.0-fpm \
-    php7.0-bcmath \
-    php7.0-bz2 \
-    php7.0-zip \
-    php7.0-dba \
-    php7.0-dom \
-    php7.0-curl \
-    php7.0-gd \
-    php7.0-geoip \
-    php7.0-imagick \
-    php7.0-json \
-    php7.0-ldap \
-    php7.0-mbstring \
-    php7.0-mcrypt \
-    php7.0-memcache \
-    php7.0-memcached \
-    php7.0-mongo \
-    php7.0-mongodb \
-    php7.0-mysqlnd \
-    php7.0-pgsql \
-    php7.0-redis \
-    php7.0-soap \
-    php7.0-sqlite \
-    php7.0-xml \
-    php7.0-xmlrpc \
-    php7.0-xdebug \
-    php7.0-intl \
+    php7.1-cli \
+    php7.1-dev \
+    php7.1-fpm \
+    php7.1-bcmath \
+    php7.1-bz2 \
+    php7.1-zip \
+    php7.1-dba \
+    php7.1-dom \
+    php7.1-curl \
+    php7.1-gd \
+    php7.1-geoip \
+    php7.1-imagick \
+    php7.1-json \
+    php7.1-ldap \
+    php7.1-mbstring \
+    php7.1-mcrypt \
+    php7.1-memcache \
+    php7.1-memcached \
+    php7.1-mongo \
+    php7.1-mongodb \
+    php7.1-mysqlnd \
+    php7.1-pgsql \
+    php7.1-redis \
+    php7.1-soap \
+    php7.1-sqlite \
+    php7.1-xml \
+    php7.1-xmlrpc \
+    php7.1-xdebug \
+    php7.1-intl \
 && phpdismod xdebug \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -72,7 +72,7 @@ RUN curl -sSL https://github.com/edenhill/librdkafka/archive/v0.9.3.tar.gz | tar
 RUN curl -sSL https://github.com/arnaud-lb/php-rdkafka/archive/3.0.1.tar.gz | tar xz \
     && cd php-rdkafka-3.0.1 \
     && phpize && ./configure && make all && make install \
-    && echo "extension=rdkafka.so" > /etc/php/7.0/mods-available/rdkafka.ini \
+    && echo "extension=rdkafka.so" > /etc/php/7.1/mods-available/rdkafka.ini \
     && phpenmod rdkafka \
     && cd .. && rm -rf php-rdkafka-3.0.1
 
@@ -80,13 +80,13 @@ RUN curl -sSL https://github.com/arnaud-lb/php-rdkafka/archive/3.0.1.tar.gz | ta
 RUN curl -sSL https://github.com/runkit7/runkit7/releases/download/1.0.5a4/runkit-1.0.5a4.tgz | tar xz \
     && cd runkit-1.0.5a4 \
     && phpize && ./configure && make all && make install \
-    && echo "extension=runkit.so" > /etc/php/7.0/mods-available/runkit.ini \
+    && echo "extension=runkit.so" > /etc/php/7.1/mods-available/runkit.ini \
     && phpenmod runkit \
     && cd .. && rm -rf runkit-1.0.5a4
 
 # Install nodejs, npm, phalcon & composer
 RUN  curl -s "https://packagecloud.io/install/repositories/phalcon/stable/script.deb.sh" | sudo bash \
-&& apt-get install php7.0-phalcon \
+&& apt-get install php7.1-phalcon \
 && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
 && curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash - \
 && apt-get install -y nodejs \
@@ -102,11 +102,11 @@ COPY conf/supervisor/supervisord.conf /etc/supervisord.conf
 COPY conf/nginx/certs /etc/nginx/certs
 COPY conf/nginx/vhosts/* /etc/nginx/sites-available/
 COPY conf/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY conf/php70/php.ini /etc/php/7.0/fpm/php.ini
-COPY conf/php70/cli.php.ini /etc/php/7.0/cli/php.ini
-COPY conf/php70/php-fpm.conf /etc/php/7.0/fpm/php-fpm.conf
-COPY conf/php70/www.conf /etc/php/7.0/fpm/pool.d/www.conf
-COPY conf/php70/xdebug.ini /etc/php/7.0/fpm/pool.d/xdebug.ini
+COPY conf/php71/php.ini /etc/php/7.1/fpm/php.ini
+COPY conf/php71/cli.php.ini /etc/php/7.1/cli/php.ini
+COPY conf/php71/php-fpm.conf /etc/php/7.1/fpm/php-fpm.conf
+COPY conf/php71/www.conf /etc/php/7.1/fpm/pool.d/www.conf
+COPY conf/php71/xdebug.ini /etc/php/7.1/fpm/pool.d/xdebug.ini
 
 # Configure php & vhosts & bootstrap scripts && forward request and error logs to docker log collector
 RUN rm -f /etc/nginx/sites-enabled/default \
