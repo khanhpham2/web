@@ -15,6 +15,8 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
 && apt-get install -y language-pack-en-base \
 && add-apt-repository -y ppa:nginx/stable \
 && add-apt-repository -y ppa:ondrej/php \
+&& echo 'deb http://apt.newrelic.com/debian/ newrelic non-free' > /etc/apt/sources.list.d/newrelic.list \
+&& curl -sSL https://download.newrelic.com/548C16BF.gpg | apt-key add - \
 && apt-get update \
 && DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends \
     build-essential \
@@ -60,7 +62,8 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     php7.0-intl \
     php7.0-apcu \
     php7.0-apcu-bc \
-&& phpdismod xdebug \
+    newrelic-php5 \
+&& phpdismod xdebug newrelic \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 # Disable xdebug by default
