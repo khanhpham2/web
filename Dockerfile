@@ -97,7 +97,7 @@ RUN  curl -s "https://packagecloud.io/install/repositories/phalcon/stable/script
 && npm config set registry http://registry.npmjs.org \
 && npm config set strict-ssl false \
 && npm cache clean \
-&& npm install -g bower grunt-cli gulp-cli
+&& npm install -g aglio bower yarn grunt-cli gulp-cli
 
 # Nginx & PHP configuration
 COPY start.sh /start.sh
