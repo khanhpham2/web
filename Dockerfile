@@ -115,12 +115,11 @@ COPY conf/php70/xdebug.ini /etc/php/7.0/fpm/pool.d/xdebug.ini
 RUN rm -f /etc/nginx/sites-enabled/default \
 && mkdir /run/php \
 && chown www-data:www-data /run/php \
-&& ln -sf /etc/nginx/sites-available/tiki.dev.conf /etc/nginx/sites-enabled/tiki.dev.conf \
-&& ln -sf /etc/nginx/sites-available/api.tiki.dev.conf /etc/nginx/sites-enabled/api.tiki.dev.conf \
-&& ln -sf /etc/nginx/sites-available/apiv2.tiki.dev.conf /etc/nginx/sites-enabled/apiv2.tiki.dev.conf \
-&& ln -sf /etc/nginx/sites-available/iapi.tiki.dev.conf /etc/nginx/sites-enabled/iapi.tiki.dev.conf \
-&& ln -sf /etc/nginx/sites-available/aapi.tiki.dev.conf /etc/nginx/sites-enabled/aapi.tiki.dev.conf \
-&& ln -sf /etc/nginx/sites-available/backend.tiki.dev.conf /etc/nginx/sites-enabled/backend.tiki.dev.conf \
+&& ln -sf /etc/nginx/sites-available/tiki.conf /etc/nginx/sites-enabled/tiki.conf \
+&& ln -sf /etc/nginx/sites-available/api.tiki.conf /etc/nginx/sites-enabled/api.tiki.conf \
+&& ln -sf /etc/nginx/sites-available/apiv2.tiki.conf /etc/nginx/sites-enabled/apiv2.tiki.conf \
+&& ln -sf /etc/nginx/sites-available/iapi.tiki.conf /etc/nginx/sites-enabled/iapi.tiki.conf \
+&& ln -sf /etc/nginx/sites-available/backend.tiki.conf /etc/nginx/sites-enabled/backend.tiki.conf \
 && ln -sf /dev/stdout /var/log/nginx/access.log \
 && ln -sf /dev/stderr /var/log/nginx/error.log \
 && chmod 755 /start.sh
