@@ -79,6 +79,13 @@ RUN curl -sSL https://github.com/arnaud-lb/php-rdkafka/archive/3.0.1.tar.gz | ta
     && phpenmod rdkafka \
     && cd .. && rm -rf php-rdkafka-3.0.1
 
+# Install php-ext-zstd
+RUN git clone --recursive --depth=1 https://github.com/kjdev/php-ext-zstd.git \
+    && cd php-ext-zstd \
+    && phpize && ./configure && make && make install \
+    && echo "extension=zstd.so" > /etc/php/7.0/mods-available/zstd.ini \
+    && phpenmod zstd \
+    && cd .. && rm -rf php-ext-zstd
 
 # Runkit7 https://github.com/runkit7/runkit7
 RUN curl -sSL https://github.com/runkit7/runkit7/releases/download/1.0.5a4/runkit-1.0.5a4.tgz | tar xz \
