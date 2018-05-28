@@ -19,6 +19,9 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
 && apt-get update \
 && DEBIAN_FRONTEND=noninteractive apt-get install -y -q --no-install-recommends \
     build-essential \
+    gcc \
+    g++ \
+    make \
     libpcre3-dev \
     vim \
     dialog \
@@ -28,37 +31,37 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     unzip \
     supervisor \
     nginx \
-    php7.0-cli \
-    php7.0-dev \
-    php7.0-fpm \
-    php7.0-bcmath \
-    php7.0-bz2 \
-    php7.0-zip \
-    php7.0-dba \
-    php7.0-dom \
-    php7.0-curl \
-    php7.0-gd \
-    php7.0-geoip \
-    php7.0-imagick \
-    php7.0-json \
-    php7.0-ldap \
-    php7.0-mbstring \
-    php7.0-mcrypt \
-    php7.0-memcache \
-    php7.0-memcached \
-    php7.0-mongo \
-    php7.0-mongodb \
-    php7.0-mysqlnd \
-    php7.0-pgsql \
-    php7.0-redis \
-    php7.0-soap \
-    php7.0-sqlite \
-    php7.0-xml \
-    php7.0-xmlrpc \
-    php7.0-xdebug \
-    php7.0-intl \
-    php7.0-apcu \
-    php7.0-apcu-bc \
+    php7.1-cli \
+    php7.1-dev \
+    php7.1-fpm \
+    php7.1-bcmath \
+    php7.1-bz2 \
+    php7.1-zip \
+    php7.1-dba \
+    php7.1-dom \
+    php7.1-curl \
+    php7.1-gd \
+    php7.1-geoip \
+    php7.1-imagick \
+    php7.1-json \
+    php7.1-ldap \
+    php7.1-mbstring \
+    php7.1-mcrypt \
+    php7.1-memcache \
+    php7.1-memcached \
+    php7.1-mongo \
+    php7.1-mongodb \
+    php7.1-mysqlnd \
+    php7.1-pgsql \
+    php7.1-redis \
+    php7.1-soap \
+    php7.1-sqlite \
+    php7.1-xml \
+    php7.1-xmlrpc \
+    php7.1-xdebug \
+    php7.1-intl \
+    php7.1-apcu \
+    php7.1-apcu-bc \
     newrelic-php5 \
 && phpdismod xdebug newrelic \
 && (curl -L https://toolbelt.treasuredata.com/sh/install-ubuntu-xenial-td-agent3.sh | sh) \
@@ -75,7 +78,7 @@ RUN curl -sSL https://github.com/edenhill/librdkafka/archive/v0.9.3.tar.gz | tar
 RUN curl -sSL https://github.com/arnaud-lb/php-rdkafka/archive/3.0.1.tar.gz | tar xz \
     && cd php-rdkafka-3.0.1 \
     && phpize && ./configure && make all && make install \
-    && echo "extension=rdkafka.so" > /etc/php/7.0/mods-available/rdkafka.ini \
+    && echo "extension=rdkafka.so" > /etc/php/7.1/mods-available/rdkafka.ini \
     && phpenmod rdkafka \
     && cd .. && rm -rf php-rdkafka-3.0.1
 
@@ -83,7 +86,7 @@ RUN curl -sSL https://github.com/arnaud-lb/php-rdkafka/archive/3.0.1.tar.gz | ta
 RUN git clone --recursive --depth=1 https://github.com/kjdev/php-ext-zstd.git \
     && cd php-ext-zstd \
     && phpize && ./configure && make && make install \
-    && echo "extension=zstd.so" > /etc/php/7.0/mods-available/zstd.ini \
+    && echo "extension=zstd.so" > /etc/php/7.1/mods-available/zstd.ini \
     && phpenmod zstd \
     && cd .. && rm -rf php-ext-zstd
 
@@ -91,13 +94,13 @@ RUN git clone --recursive --depth=1 https://github.com/kjdev/php-ext-zstd.git \
 RUN curl -sSL https://github.com/runkit7/runkit7/releases/download/1.0.5a4/runkit-1.0.5a4.tgz | tar xz \
     && cd runkit-1.0.5a4 \
     && phpize && ./configure && make all && make install \
-    && echo "extension=runkit.so" > /etc/php/7.0/mods-available/runkit.ini \
+    && echo "extension=runkit.so" > /etc/php/7.1/mods-available/runkit.ini \
     && phpenmod runkit \
     && cd .. && rm -rf runkit-1.0.5a4
 
 # Install nodejs, npm, phalcon & composer
 RUN  curl -s "https://packagecloud.io/install/repositories/phalcon/stable/script.deb.sh" | sudo bash \
-&& apt-get install php7.0-phalcon \
+&& apt-get install php7.1-phalcon \
 && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
 && curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash - \
 && apt-get install -y nodejs \
@@ -114,11 +117,11 @@ COPY conf/td-agent/td-agent.conf /etc/td-agent/td-agent.conf
 COPY conf/nginx/certs /etc/nginx/certs
 COPY conf/nginx/vhosts/* /etc/nginx/sites-available/
 COPY conf/nginx/nginx.conf /etc/nginx/nginx.conf
-COPY conf/php70/php.ini /etc/php/7.0/fpm/php.ini
-COPY conf/php70/cli.php.ini /etc/php/7.0/cli/php.ini
-COPY conf/php70/php-fpm.conf /etc/php/7.0/fpm/php-fpm.conf
-COPY conf/php70/www.conf /etc/php/7.0/fpm/pool.d/www.conf
-COPY conf/php70/xdebug.ini /etc/php/7.0/fpm/pool.d/xdebug.ini
+COPY conf/php71/php.ini /etc/php/7.1/fpm/php.ini
+COPY conf/php71/cli.php.ini /etc/php/7.1/cli/php.ini
+COPY conf/php71/php-fpm.conf /etc/php/7.1/fpm/php-fpm.conf
+COPY conf/php71/www.conf /etc/php/7.1/fpm/pool.d/www.conf
+COPY conf/php71/xdebug.ini /etc/php/7.1/fpm/pool.d/xdebug.ini
 
 # Configure php & vhosts & bootstrap scripts && forward request and error logs to docker log collector
 RUN rm -f /etc/nginx/sites-enabled/default \
@@ -129,6 +132,7 @@ RUN rm -f /etc/nginx/sites-enabled/default \
 && ln -sf /etc/nginx/sites-available/apiv2.tiki.conf /etc/nginx/sites-enabled/apiv2.tiki.conf \
 && ln -sf /etc/nginx/sites-available/iapi.tiki.conf /etc/nginx/sites-enabled/iapi.tiki.conf \
 && ln -sf /etc/nginx/sites-available/backend.tiki.conf /etc/nginx/sites-enabled/backend.tiki.conf \
+&& ln -sf /etc/nginx/sites-available/oms.tiki.conf /etc/nginx/sites-enabled/oms.tiki.conf \
 && ln -sf /dev/stdout /var/log/nginx/access.log \
 && ln -sf /dev/stderr /var/log/nginx/error.log \
 && chmod 755 /start.sh
