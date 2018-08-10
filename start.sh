@@ -58,7 +58,7 @@ _init_newrelic() {
   echo ":: initializing newrelic config (_newrelic_enableb=${_newrelic_enableb})"
 
   if [[ $_newrelic_enableb == 1 ]] ; then
-    local _f_conf="/etc/php/7.0/mods-available/newrelic.ini"
+    local _f_conf="/etc/php/7.1/mods-available/newrelic.ini"
     local _license=${TK_NEWRELIC_LICENSE:-}
     local _app_name=${TK_NEWRELIC_APPNAME:-tk-nginx-php}
 
