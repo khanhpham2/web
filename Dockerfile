@@ -11,8 +11,8 @@ ENV LC_ALL     en_US.UTF-8
 # Setup timezone & install libraries
 RUN echo "Asia/Bangkok" > /etc/timezone \
 && dpkg-reconfigure -f noninteractive tzdata \
-&& apt-get install -y software-properties-common \
-&& apt-get install -y language-pack-en-base \
+&& apt-get update \
+&& apt-get install -y software-properties-common language-pack-en-base curl wget \
 && add-apt-repository -y ppa:nginx/stable \
 && add-apt-repository -y ppa:ondrej/php \
 && echo 'deb http://apt.newrelic.com/debian/ newrelic non-free' > /etc/apt/sources.list.d/newrelic.list \
@@ -22,8 +22,6 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     build-essential \
     libpcre3-dev \
     vim \
-    curl \
-    wget \
     dialog \
     net-tools \
     git \
