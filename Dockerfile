@@ -61,6 +61,7 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     php7.1-apcu \
     php7.1-apcu-bc \
 && phpdismod xdebug \
+&& (curl -L https://toolbelt.treasuredata.com/sh/install-ubuntu-xenial-td-agent3.sh | sh) \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 # Disable xdebug by default
@@ -101,6 +102,7 @@ RUN  curl -s "https://packagecloud.io/install/repositories/phalcon/stable/script
 # Nginx & PHP configuration
 COPY start.sh /start.sh
 COPY conf/supervisor/supervisord.conf /etc/supervisord.conf
+COPY conf/td-agent/td-agent.conf /etc/td-agent/td-agent.conf
 COPY conf/nginx/certs /etc/nginx/certs
 COPY conf/nginx/vhosts/* /etc/nginx/sites-available/
 COPY conf/nginx/nginx.conf /etc/nginx/nginx.conf
