@@ -1,4 +1,4 @@
-FROM ubuntu:14.04.3
+FROM ubuntu:14.04
 MAINTAINER Hoa Nguyen <hoa.nguyenmanh@tiki.vn>
 
 WORKDIR /src
