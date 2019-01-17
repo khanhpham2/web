@@ -1,7 +1,12 @@
-FROM ubuntu:14.04.3
+FROM ubuntu:18.04
 MAINTAINER Hoa Nguyen <hoa.nguyenmanh@tiki.vn>
 
 WORKDIR /src
+
+RUN apt-get clean && apt-get update && apt-get install -y locales && apt-get install -y tzdata
+
+# Environment for php7.1-phalcon build
+ENV DEBIAN_FRONTEND noninteractive
 
 # Ensure UTF-8
 RUN locale-gen en_US.UTF-8
@@ -99,16 +104,17 @@ RUN curl -sSL https://github.com/runkit7/runkit7/releases/download/1.0.5a4/runki
     && cd .. && rm -rf runkit-1.0.5a4
 
 # Install nodejs, npm, phalcon & composer
-RUN  curl -s "https://packagecloud.io/install/repositories/phalcon/stable/script.deb.sh" | sudo bash \
-&& apt-get install php7.1-phalcon \
+RUN  curl -s "https://packagecloud.io/install/repositories/phalcon/stable/script.deb.sh" | bash \
+&& apt-get install -y php7.1-phalcon \
 && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
-&& curl -sL https://deb.nodesource.com/setup_7.x | sudo -E bash - \
+&& curl -sL https://deb.nodesource.com/setup_8.x | bash - \
 && apt-get install -y nodejs \
 && ln -fs /usr/bin/nodejs /usr/local/bin/node \
 && npm config set registry http://registry.npmjs.org \
 && npm config set strict-ssl false \
-&& npm cache clean \
-&& npm install -g aglio bower yarn grunt-cli gulp-cli
+&& npm install -g bower grunt-cli gulp-cli
+
+RUN npm i -g aglio --unsafe-perm=true --allow-root
 
 # Nginx & PHP configuration
 COPY start.sh /start.sh
