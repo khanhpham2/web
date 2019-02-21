@@ -74,6 +74,15 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 # Disable xdebug by default
 
+# Install php-lz4
+RUN git clone --recursive --depth=1 https://github.com/kjdev/php-ext-lz4.git \
+    && cd php-ext-lz4 \
+    && phpize \
+    && ./configure && make && make install \
+    && echo "extension=lz4.so" > /etc/php/7.1/mods-available/lz4.ini \
+    && phpenmod lz4 \
+    && cd .. && rm -rf php-ext-lz4
+
 # Install php-rdkafka
 RUN curl -sSL https://github.com/edenhill/librdkafka/archive/v0.11.5.tar.gz | tar xz \
     && cd librdkafka-0.11.5 \
