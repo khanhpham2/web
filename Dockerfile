@@ -27,6 +27,7 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     gcc \
     g++ \
     make \
+    sudo \
     libpcre3-dev \
     vim \
     dialog \
@@ -69,7 +70,7 @@ RUN echo "Asia/Bangkok" > /etc/timezone \
     php7.1-apcu-bc \
     newrelic-php5 \
 && phpdismod xdebug newrelic \
-&& (curl -L https://toolbelt.treasuredata.com/sh/install-ubuntu-xenial-td-agent3.sh | sh) \
+&& (curl -L https://toolbelt.treasuredata.com/sh/install-ubuntu-bionic-td-agent3.sh | sh) \
 && apt-get clean \
 && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 # Disable xdebug by default
@@ -82,6 +83,15 @@ RUN git clone --recursive --depth=1 https://github.com/kjdev/php-ext-lz4.git \
     && echo "extension=lz4.so" > /etc/php/7.1/mods-available/lz4.ini \
     && phpenmod lz4 \
     && cd .. && rm -rf php-ext-lz4
+
+# Install php-snappy
+RUN git clone -b 0.1.9 --recursive --depth=1 https://github.com/kjdev/php-ext-snappy.git \
+    && cd php-ext-snappy \
+    && phpize \
+    && ./configure && make && make install \
+    && echo "extension=snappy.so" > /etc/php/7.1/mods-available/snappy.ini \
+    && phpenmod snappy \
+    && cd .. && rm -rf php-ext-snappy
 
 # Install php-rdkafka
 RUN curl -sSL https://github.com/edenhill/librdkafka/archive/v0.11.5.tar.gz | tar xz \
